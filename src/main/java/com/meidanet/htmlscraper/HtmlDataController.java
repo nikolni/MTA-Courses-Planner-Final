@@ -12,9 +12,13 @@ public class HtmlDataController {
     private HtmlDataRepository htmlDataRepository;
 
     @PostMapping("/saveData")
-    public HtmlData saveData(@RequestBody HtmlData data) {
-
-        return htmlDataRepository.save(data);
+    public HtmlData saveData(@RequestBody String data) {
+        HtmlData htmlData = new HtmlData();
+        htmlData.setHtmlContent(data);
+        return htmlDataRepository.save(htmlData);
     }
+
+
+
 
 }
