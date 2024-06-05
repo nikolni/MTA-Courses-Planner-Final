@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.meidanet</groupId>
-	<artifactId>html-scraper</artifactId>
+	<artifactId>MTA-Courses-Planner</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>html-scraper</name>
 	<description>Server for storing Database</description>
@@ -34,6 +34,7 @@
 			<version>8.0.33</version>
 			<scope>runtime</scope>
 		</dependency>
+
 		<!-- Spring Boot Starter Test -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
