@@ -1,6 +1,6 @@
 {
-  "name": "FUCK MY LIFE!",
-  "description": "Base Level Extension",
+  "name": "MTA Courses Planner!",
+  "description": "Courses details Extension",
   "version": "1.0",
   "manifest_version": 3,
   "permissions": [
@@ -10,7 +10,7 @@
   "content_scripts": [
     {
       "matches": ["https://rishum.mta.ac.il/*"],
-      "js": ["content.js"]
+      "js": [ "contentCourses.js" ]
     }
   ],
   "action": {
