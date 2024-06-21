@@ -1,21 +1,26 @@
 package com.meidanet.htmlscraper.database.courses;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 
 @Entity
+@IdClass(CourseId.class)
 public class Course {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long course_id;
 
+    @Id
+    private String student_id;
+    @Id
+    private String course_id;
     private String course_name;
 
+
     // Getters and setters
-    public Long getCourseId() {
+    public String getCourseId() {
         return course_id;
     }
 
-    public void setCourseId(Long coursesId) {
+    public void setCourseId(String coursesId) {
         this.course_id = coursesId;
     }
 
@@ -25,5 +30,13 @@ public class Course {
 
     public void setCourseName(String coursesName) {
         this.course_name = coursesName;
+    }
+
+    public String getStudent_id() {
+        return student_id;
+    }
+
+    public void setStudent_id(String student_id) {
+        this.student_id = student_id;
     }
 }
