@@ -3,6 +3,7 @@ package com.meidanet.htmlscraper.database.courses;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,6 +12,9 @@ import java.util.regex.Pattern;
 
 @Service
 public class CourseService {
+
+    @Autowired
+    private CourseRepository courseRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -53,5 +57,10 @@ public class CourseService {
         } else {
             throw new IllegalArgumentException("Invalid course info format");
         }
+    }
+
+    public List<Course> getStudentCourses(String studentID) {
+
+        return courseRepository.findByStudent_id(studentID);
     }
 }
