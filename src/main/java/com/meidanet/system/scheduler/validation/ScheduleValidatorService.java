@@ -85,9 +85,7 @@ public class ScheduleValidatorService {
                         if(changes == null)
                             changes = new ArrayList<>();
                         changes.add("In course '" + course1.getCourseCodeName() + "' a default selection was made for the exercise group.");
-                        exeKey1 = course1.getCourseCodeName() + '-' + exeLesson1;
-                    } else {
-                        exeLesson1 = course1.getExerciseCode();
+                         exeKey1 = course1.getCourseCodeName() + '-' + course1.getExerciseCode();
                     }
                 }
 
@@ -99,7 +97,7 @@ public class ScheduleValidatorService {
 
                         if(course2.isHasExercise() && course2.getExerciseCode().equals("dc")){
                             String exeLesson2 = createExerciseNumberFromGroupNumber(course2.getLessonCode());
-                            exeKey2 = course2.getCourseCodeName() + '-' + exeLesson2;
+                            exeKey2 = course2.getCourseCodeName() + '-' + course2.getExerciseCode();
                         }
 
                         boolean isConflictFree = isConflicted(type, key1, key2, exeKey1, exeKey2, requiredGroups, choiceGroups);
