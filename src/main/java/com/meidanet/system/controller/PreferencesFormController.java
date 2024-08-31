@@ -45,28 +45,35 @@ public class PreferencesFormController {
     @CrossOrigin(origins = {"http://localhost:3000", "https://mta-courses-planner-f96c9.web.app"}, allowCredentials = "true")
    // @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
     @PostMapping("/upload-preferences-form")
-    public ResponseEntity<FinalSystem> receiveForm(@RequestBody String json) throws JsonProcessingException {
+    public ResponseEntity<Object> receiveForm(@RequestBody String json) throws JsonProcessingException {
         FinalSystem finalSystem = new FinalSystem();
+        boolean isValidRequest;
         try {
             PreferencesForm preferencesForm = FormParser.extractStudentRequests(json);
-            Scheduler scheduler = new Scheduler(courseService, requiredCoursesService, choiceCoursesService, csCoursesConditionsService);
+            Scheduler scheduler = new Scheduler(studentService, courseService, requiredCoursesService, choiceCoursesService, csCoursesConditionsService);
 
-            scheduler.getSchedule(preferencesForm, finalSystem);
+            isValidRequest = scheduler.getSchedule(preferencesForm, finalSystem);
         }
         catch (Exception e) {
             throw new RuntimeException(e);
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
-
         // Create ObjectWriter with pretty printing
         ObjectWriter writer = objectMapper.writerWithDefaultPrettyPrinter();
-        // Convert the object to JSON with pretty printing
-        String prettyJsonString = writer.writeValueAsString(finalSystem);
-        // Print the pretty JSON string
-        System.out.println(prettyJsonString);
+        String prettyJsonString;
 
-        return ResponseEntity.ok(finalSystem);
+        if(isValidRequest) {
+            // Convert the object to JSON with pretty printing
+             prettyJsonString = writer.writeValueAsString(finalSystem);
+        }
+        else{
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "The student ID does not exist in the system. Try again");
+            prettyJsonString = writer.writeValueAsString(response);
+        }
+        System.out.println(prettyJsonString);
+        return ResponseEntity.ok(prettyJsonString);
     }
 
 }
