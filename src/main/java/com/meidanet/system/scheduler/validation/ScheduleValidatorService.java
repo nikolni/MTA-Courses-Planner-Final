@@ -1,11 +1,13 @@
 package com.meidanet.system.scheduler.validation;
 
 
-import com.meidanet.htmlscraper.database.computer.science.course.choice.CSCoursesChoice;
-import com.meidanet.htmlscraper.database.computer.science.course.required.CSCoursesRequired;
-import com.meidanet.system.preference.form.PreferencesForm;
+import com.meidanet.database.computer.science.course.choice.CSCoursesChoice;
+import com.meidanet.database.computer.science.course.choice.ChoiceCoursesService;
+import com.meidanet.database.computer.science.course.required.CSCoursesRequired;
+import com.meidanet.database.computer.science.course.required.RequiredCoursesService;
 import com.meidanet.system.preference.form.course.request.CoursePreferences;
 import com.meidanet.system.scheduler.answer.FinalSystem;
+import com.meidanet.system.scheduler.helper.FinalSystemHelper;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -19,29 +21,37 @@ public class ScheduleValidatorService {
     public static final String REQ_CHOICE_CONFLICTS = "2";
     public static final String CHOICE_CHOICE_CONFLICTS = "3";
 
+   private final RequiredCoursesService requiredCoursesService;
+   private final ChoiceCoursesService choiceCoursesService;
+   private final FinalSystemHelper finalSystemHelper = new FinalSystemHelper();
 
-    public void validateForSemesterA(List<CSCoursesRequired> requiredLessonsHours, List<CSCoursesChoice> choiceLessonsHours,
-                                        PreferencesForm preferencesForm, FinalSystem finalSystem){
 
-        searchConflicts(preferencesForm.getRequiredSemesterA(), preferencesForm.getRequiredSemesterA(),
+    public ScheduleValidatorService(RequiredCoursesService requiredCoursesService, ChoiceCoursesService choiceCoursesService){
+        this.requiredCoursesService = requiredCoursesService;
+        this.choiceCoursesService = choiceCoursesService;
+    }
+
+    public void validateForSemesterA(List<CoursePreferences> validRequiredLessons, List<CSCoursesRequired> requiredLessonsHours, List<CoursePreferences> validChoiceLessons,
+                                     List<CSCoursesChoice> choiceLessonsHours, FinalSystem finalSystem){
+
+        searchConflicts(validRequiredLessons, validRequiredLessons,
                 requiredLessonsHours, choiceLessonsHours, finalSystem, REQ_REQ_CONFLICTS, "A");
-        searchConflicts(preferencesForm.getRequiredSemesterA(), preferencesForm.getChoiceSemesterA(),
+        searchConflicts(validRequiredLessons, validChoiceLessons,
                 requiredLessonsHours, choiceLessonsHours, finalSystem, REQ_CHOICE_CONFLICTS, "A");
-        searchConflicts(preferencesForm.getChoiceSemesterA(), preferencesForm.getChoiceSemesterA(),
+        searchConflicts(validChoiceLessons, validChoiceLessons,
                 requiredLessonsHours, choiceLessonsHours, finalSystem, CHOICE_CHOICE_CONFLICTS, "A" );
 
     }
 
 
 
-    public void validateForSemesterB(List<CSCoursesRequired> requiredLessonsHours, List<CSCoursesChoice> choiceLessonsHours,
-                                     PreferencesForm preferencesForm, FinalSystem finalSystem){
-
-        searchConflicts(preferencesForm.getRequiredSemesterB(), preferencesForm.getRequiredSemesterB(),
+    public void validateForSemesterB(List<CoursePreferences> validRequiredLessons, List<CSCoursesRequired> requiredLessonsHours, List<CoursePreferences> validChoiceLessons,
+                                     List<CSCoursesChoice> choiceLessonsHours, FinalSystem finalSystem){
+        searchConflicts(validRequiredLessons, validRequiredLessons,
                 requiredLessonsHours, choiceLessonsHours, finalSystem, REQ_REQ_CONFLICTS, "B");
-        searchConflicts(preferencesForm.getRequiredSemesterB(), preferencesForm.getChoiceSemesterB(),
+        searchConflicts(validRequiredLessons, validChoiceLessons,
                 requiredLessonsHours, choiceLessonsHours, finalSystem, REQ_CHOICE_CONFLICTS, "B");
-        searchConflicts(preferencesForm.getChoiceSemesterB(), preferencesForm.getChoiceSemesterB(),
+        searchConflicts(validChoiceLessons, validChoiceLessons,
                 requiredLessonsHours, choiceLessonsHours, finalSystem, CHOICE_CHOICE_CONFLICTS, "B" );
     }
 
@@ -53,105 +63,138 @@ public class ScheduleValidatorService {
         Map<String, List<CSCoursesRequired>> requiredGroups = groupByRequiredCourseAndGroup(requiredLessonsHours);
         Map<String, List<CSCoursesChoice>> choiceGroups = groupByChoiceCourseAndGroup(choiceLessonsHours);
         Map<String, Boolean> isCourseCompared = new HashMap<>();
+        List<String> changes = null;
 
         String exeKey1 = null;
         String exeKey2 = null;
 
         for(CoursePreferences course1 : primaryList){
+            if(changes != null)
+                changes.clear();
 
             CoursePreferences finalCourse;
+            String exeLesson1 = "";
 
-            if(!course1.getGroup_number().equals("dc")){
-                String key1 = course1.getCourse_id_name() + '-' + course1.getGroup_number();
+            if(!course1.getLessonCode().equals("dc")){
 
-                if(course1.isCourseHasExercise() && course1.getExerciseLesson().equals("dc")){
-                    String exeLesson1 = course1.getExerciseLessonByGroupNumber();
-                    exeKey1 = course1.getCourse_id_name() + '-' + exeLesson1;
+                String key1 = course1.getCourseCodeName() + '-' + course1.getLessonCode();
+
+                if(course1.isHasExercise()) {
+                    if (course1.getExerciseCode().equals("dc")) {
+                        exeLesson1 = createExerciseNumberFromGroupNumber(course1.getLessonCode());
+                        if(changes == null)
+                            changes = new ArrayList<>();
+                        changes.add("In course '" + course1.getCourseCodeName() + "' a default selection was made for the exercise group.");
+                        exeKey1 = course1.getCourseCodeName() + '-' + exeLesson1;
+                    } else {
+                        exeLesson1 = course1.getExerciseCode();
+                    }
                 }
+
                 for( CoursePreferences course2 : secondaryList){
 
-                    if(!course1.getCourse_id_name().equals(course2.getCourse_id_name()) && !course2.getGroup_number().equals("dc") &&
-                            (isCourseCompared.get(course2.getCourse_id_name()) == null)){
-                        String key2 = course2.getCourse_id_name() + '-' + course2.getGroup_number();
+                    if(!course1.getCourseCodeName().equals(course2.getCourseCodeName()) && !course2.getLessonCode().equals("dc") &&
+                            (isCourseCompared.get(course2.getCourseCodeName()) == null)){
+                        String key2 = course2.getCourseCodeName() + '-' + course2.getLessonCode();
 
-                        if(course2.isCourseHasExercise() && course2.getExerciseLesson().equals("dc")){
-                            String exeLesson2 = course2.getExerciseLessonByGroupNumber();
-                            exeKey2 = course2.getCourse_id_name() + '-' + exeLesson2;
+                        if(course2.isHasExercise() && course2.getExerciseCode().equals("dc")){
+                            String exeLesson2 = createExerciseNumberFromGroupNumber(course2.getLessonCode());
+                            exeKey2 = course2.getCourseCodeName() + '-' + exeLesson2;
                         }
 
-                        boolean isConflicted = isConflicted(type, key1, key2, exeKey1, exeKey2, requiredGroups, choiceGroups);
+                        boolean isConflictFree = isConflicted(type, key1, key2, exeKey1, exeKey2, requiredGroups, choiceGroups);
 
-                        if(isConflicted){
-                            finalSystem.addError("״Please note: the courses" + course1.getCourse_id_name() + "and" +
-                                    course2.getCourse_id_name() + "conflict with study hours. Please choose other study hours");
+                        if(!isConflictFree){
+                            if(semester.equals("A")){
+                                finalSystem.addErrorA("Please note: the courses: '" + course1.getCourseCodeName() + "' and '" + course2.getCourseCodeName() +
+                                        "' conflict with study hours. Please choose other study hours");
+                            }
+                            else
+                                finalSystem.addErrorB("Please note: the courses: '" + course1.getCourseCodeName() + "' and '" + course2.getCourseCodeName() +
+                                    "' conflict with study hours. Please choose other study hours");
                         }
                     }
                 }
-                isCourseCompared.put(course1.getCourse_id_name(), true);
+                isCourseCompared.put(course1.getCourseCodeName(), true);
 
-                finalCourse = new CoursePreferences(course1.getCourse_id_name(), course1.getGroup_number(), course1.isCourseHasExercise(), course1.getExerciseLessonByGroupNumber());
-                addCourseToFinalSystem(finalSystem, type, finalCourse, semester);
+                finalCourse = new CoursePreferences(course1.getCourseCodeName(), course1.getLessonCode(), course1.isHasExercise(), exeLesson1);
+                addCourseToFinalSystem(finalSystem, type, finalCourse, semester, changes);
 
             }
 
             //course1 is "dc", take care after comparing to all req and all choice
             else{
-                finalCourse = dillWithCoursesWithDCGroupNumber(requiredLessonsHours, choiceLessonsHours, finalSystem, type, semester, course1, requiredGroups, choiceGroups);
-                addCourseToFinalSystem(finalSystem, type, finalCourse, semester);
+                finalCourse = dillWithCoursesWithDCGroupNumber(requiredLessonsHours, choiceLessonsHours, finalSystem, type,
+                        semester, course1, changes, requiredGroups, choiceGroups);
+                addCourseToFinalSystem(finalSystem, type, finalCourse, semester, changes);
             }
         }
     }
 
     private CoursePreferences dillWithCoursesWithDCGroupNumber(List<CSCoursesRequired> requiredLessonsHours, List<CSCoursesChoice> choiceLessonsHours,
-                                                  FinalSystem finalSystem, String type, String semester, CoursePreferences course1,
+                                                  FinalSystem finalSystem, String type, String semester, CoursePreferences course1, List<String> changes,
                                                   Map<String, List<CSCoursesRequired>> requiredGroups, Map<String, List<CSCoursesChoice>> choiceGroups){
         String group_number = "";
-        String exercise_group_number = "dc";
+        String exercise_group_number = "";
+
+        if(changes == null)
+            changes = new ArrayList<>();
+        changes.add("In course '" + course1.getCourseCodeName() + "' a default selection was made for the lesson group.");
+
         //if course1 is req, take care after comparing to all req and all choice
         if (type.equals(REQ_CHOICE_CONFLICTS)) {
-            List<CSCoursesRequired> filteredList= filterRequiredCourses(requiredLessonsHours, course1.getCourse_id_name());
+            List<CSCoursesRequired> filteredList= filterRequiredCourses(requiredLessonsHours, course1.getCourseCodeName());
             group_number = searchOptimalRequiredGroupNumber(filteredList, finalSystem, semester, requiredGroups, choiceGroups);
-            if(course1.isCourseHasExercise()){
+            if(course1.isHasExercise()){
+                changes.add("In course '" + course1.getCourseCodeName() + "' a default selection was made for the exercise group.");
                 exercise_group_number = createExerciseNumberFromGroupNumber(group_number);
             }
         }
         //if course1 is choice, take care after comparing to all choice
         else if (type.equals(CHOICE_CHOICE_CONFLICTS)) {
-            List<CSCoursesChoice> filteredList= filterChoiceCourses(choiceLessonsHours, course1.getCourse_id_name());
+            List<CSCoursesChoice> filteredList= filterChoiceCourses(choiceLessonsHours, course1.getCourseCodeName());
             group_number = searchOptimalChoiceGroupNumber(filteredList, finalSystem, semester, requiredGroups, choiceGroups);
-            if(course1.isCourseHasExercise()){
+            if(course1.isHasExercise()){
+                changes.add("In course '" + course1.getCourseCodeName() + "' a default selection was made for the exercise group.");
                 exercise_group_number = createExerciseNumberFromGroupNumber(group_number);
             }
         }
-        return new CoursePreferences(course1.getCourse_id_name(), group_number, course1.isCourseHasExercise(), exercise_group_number);
+        return new CoursePreferences(course1.getCourseCodeName(), group_number, course1.isHasExercise(), exercise_group_number);
     }
 
 
     private String searchOptimalRequiredGroupNumber(List<CSCoursesRequired> groupNumbersList, FinalSystem finalSystem, String semester,
                                                     Map<String, List<CSCoursesRequired>> requiredGroups, Map<String, List<CSCoursesChoice>> choiceGroups) {
 
-        Map<String, List<CSCoursesRequired>> groupNumbersGroups = groupByGroupNumberForRequired(groupNumbersList);
+        Map<String, List<CSCoursesRequired>> groupNumbersGroups = groupByGroupNumberForRequired(groupNumbersList); //כל הקבוצות של הקורס הזה
 
         String group_number = "";
 
         boolean isConflictFree = true;
         //for every optional group
-        for(List<CSCoursesRequired> requiredList : groupNumbersGroups.values()) {
+        for(List<CSCoursesRequired> optionalGroup : groupNumbersGroups.values()) {
             if(semester.equals("A")){
-                isConflictFree = searchConflictInSemesterAReq( finalSystem, isConflictFree, requiredList, requiredGroups, choiceGroups);
+                isConflictFree = searchConflictInSemesterAReq( finalSystem, isConflictFree, optionalGroup, requiredGroups, choiceGroups);
             }
             else{
-                isConflictFree = searchConflictInSemesterBReq( finalSystem, isConflictFree, requiredList, requiredGroups, choiceGroups);
+                isConflictFree = searchConflictInSemesterBReq( finalSystem, isConflictFree, optionalGroup, requiredGroups, choiceGroups);
             }
 
-            group_number = requiredList.get(0).getGroup_number();
+            group_number = optionalGroup.get(0).getGroup_number();
             if(isConflictFree){
                 break;
             }
         }
         if(!isConflictFree){
-            finalSystem.addError("All groups of course" + groupNumbersList.get(0).getCourse_id_name() + "conflict with the other courses. " +
-                    "This course is a mandatory course, so it is recommended to change the choice of hours to other courses.");
+            if(semester.equals("A")){
+                finalSystem.addErrorA("All groups of course '" + groupNumbersList.get(0).getCourse_id_name() + "' conflict with the other courses." +
+                        "This course is a mandatory course, so it is recommended to change the choice of hours to other courses.");
+
+            }
+            else
+                finalSystem.addErrorB("All groups of course '" + groupNumbersList.get(0).getCourse_id_name() + "' conflict with the other courses." +
+                        "This course is a mandatory course, so it is recommended to change the choice of hours to other courses.");
+
         }
         return group_number;
     }
@@ -165,108 +208,159 @@ public class ScheduleValidatorService {
 
         boolean isConflictFree = true;
         //for every optional group
-        for(List<CSCoursesChoice> choiceList : groupNumbersGroups.values()) {
+        for(List<CSCoursesChoice> optionalGroup : groupNumbersGroups.values()) {
             if(semester.equals("A")){
-                isConflictFree = searchConflictInSemesterAChoice( finalSystem, isConflictFree, choiceList, requiredGroups, choiceGroups);
+                isConflictFree = searchConflictInSemesterAChoice( finalSystem, isConflictFree, optionalGroup, requiredGroups, choiceGroups);
             }
             else{
-                isConflictFree = searchConflictInSemesterBChoice( finalSystem, isConflictFree, choiceList, requiredGroups, choiceGroups);
+                isConflictFree = searchConflictInSemesterBChoice( finalSystem, isConflictFree, optionalGroup, requiredGroups, choiceGroups);
             }
 
-            group_number = choiceList.get(0).getGroup_number();
+            group_number = optionalGroup.get(0).getGroup_number();
             if(isConflictFree){
                 break;
             }
         }
         if(!isConflictFree){
-            finalSystem.addError("All groups of course" + groupNumbersList.get(0).getCourse_id_name() + "conflict with the other courses. " +
-                    "This course is a mandatory course, so it is recommended to change the choice of hours to other courses.");
+            if(semester.equals("A")){
+                finalSystem.addErrorA("All groups of course '" + groupNumbersList.get(0).getCourse_id_name() + "' conflict with the other courses. A default group was selected.");
+            }
+            else
+                finalSystem.addErrorB("All groups of course '" + groupNumbersList.get(0).getCourse_id_name() + "' conflict with the other courses. A default group was selected.");
         }
         return group_number;
     }
 
-    private boolean searchConflictInSemesterAReq(FinalSystem finalSystem, boolean isConflictFree, List<CSCoursesRequired> requiredList,
-                                              Map<String, List<CSCoursesRequired>> requiredGroups, Map<String, List<CSCoursesChoice>> choiceGroups){
-        for(CoursePreferences reqCourse : finalSystem.getRequiredSemesterA()){
-            if(isConflictFree) {
-                String key = reqCourse.getCourse_id_name() + '-' + reqCourse.getGroup_number();
-                List<CSCoursesRequired> courseFromFinals = requiredGroups.get(key);
-                isConflictFree = isConflictFree(requiredList, courseFromFinals);
+    private boolean searchConflictInSemesterAReq(FinalSystem finalSystem, boolean isConflictFree, List<CSCoursesRequired> optionalGroup,
+                                                 Map<String, List<CSCoursesRequired>> requiredGroups, Map<String, List<CSCoursesChoice>> choiceGroups){
+        //עבור כל קורס שכבר נוסף לאובייקט הסופי, נבדוק שהקבוצה הנבדקת לא גורמת להתנגשויות
+        if(finalSystem.getRequiredSemesterA() != null) {
+            for (CoursePreferences reqCourse : finalSystemHelper.getRequiredSemesterA()) {
+                if (isConflictFree) {
+                    String key = reqCourse.getCourseCodeName() + '-' + reqCourse.getLessonCode();
+                    List<CSCoursesRequired> courseFromFinals = requiredGroups.get(key);
+                    if(reqCourse.isHasExercise()){
+                        String keyExercise = reqCourse.getCourseCodeName() + '-' + reqCourse.getExerciseCode();
+                        courseFromFinals.addAll(requiredGroups.get(keyExercise));
+                    }
+                    isConflictFree = isConflictFree(optionalGroup, courseFromFinals);
+                }
             }
         }
-        for(CoursePreferences choiceCourse : finalSystem.getChoiceSemesterA()){
-            if(isConflictFree) {
-                String key = choiceCourse.getCourse_id_name() + '-' + choiceCourse.getGroup_number();
-                List<CSCoursesChoice> courseFromFinals = choiceGroups.get(key);
-                isConflictFree = isConflictFree(requiredList, courseFromFinals);
-            }
-        }
-        return isConflictFree;
-
-    }
-
-    private boolean searchConflictInSemesterBReq(FinalSystem finalSystem, boolean isConflictFree, List<CSCoursesRequired> requiredList,
-                                              Map<String, List<CSCoursesRequired>> requiredGroups, Map<String, List<CSCoursesChoice>> choiceGroups){
-        for(CoursePreferences reqCourse : finalSystem.getRequiredSemesterB()){
-            if(isConflictFree) {
-                String key = reqCourse.getCourse_id_name() + '-' + reqCourse.getGroup_number();
-                List<CSCoursesRequired> courseFromFinals = requiredGroups.get(key);
-                isConflictFree = isConflictFree(requiredList, courseFromFinals);
-            }
-        }
-        for(CoursePreferences choiceCourse : finalSystem.getChoiceSemesterB()){
-            if(isConflictFree) {
-                String key = choiceCourse.getCourse_id_name() + '-' + choiceCourse.getGroup_number();
-                List<CSCoursesChoice> courseFromFinals = choiceGroups.get(key);
-                isConflictFree = isConflictFree(requiredList, courseFromFinals);
+        if(finalSystem.getChoiceSemesterA() != null) {
+            for (CoursePreferences choiceCourse : finalSystemHelper.getChoiceSemesterA()) {
+                if (isConflictFree){
+                    String key = choiceCourse.getCourseCodeName() + '-' + choiceCourse.getLessonCode();
+                    List<CSCoursesChoice> courseFromFinals = choiceGroups.get(key);
+                    if(choiceCourse.isHasExercise()){
+                        String keyExercise = choiceCourse.getCourseCodeName() + '-' + choiceCourse.getExerciseCode();
+                        courseFromFinals.addAll(choiceGroups.get(keyExercise));
+                    }
+                    isConflictFree = isConflictFree(optionalGroup, courseFromFinals);
+                }
             }
         }
         return isConflictFree;
 
     }
 
-    private boolean searchConflictInSemesterAChoice(FinalSystem finalSystem, boolean isConflictFree, List<CSCoursesChoice> choiceList,
+    private boolean searchConflictInSemesterBReq(FinalSystem finalSystem, boolean isConflictFree, List<CSCoursesRequired> optionalGroup,
                                               Map<String, List<CSCoursesRequired>> requiredGroups, Map<String, List<CSCoursesChoice>> choiceGroups){
-        for(CoursePreferences reqCourse : finalSystem.getRequiredSemesterA()){
-            if(isConflictFree) {
-                String key = reqCourse.getCourse_id_name() + '-' + reqCourse.getGroup_number();
-                List<CSCoursesRequired> courseFromFinals = requiredGroups.get(key);
-                isConflictFree = isConflictFree(choiceList, courseFromFinals);
+        if(finalSystem.getRequiredSemesterB() != null) {
+            for (CoursePreferences reqCourse : finalSystemHelper.getRequiredSemesterB()) {
+                if (isConflictFree){
+                    String key = reqCourse.getCourseCodeName() + '-' + reqCourse.getLessonCode();
+                    List<CSCoursesRequired> courseFromFinals = requiredGroups.get(key);
+                    if(reqCourse.isHasExercise()){
+                        String keyExercise = reqCourse.getCourseCodeName() + '-' + reqCourse.getExerciseCode();
+                        courseFromFinals.addAll(requiredGroups.get(keyExercise));
+                    }
+                    isConflictFree = isConflictFree(optionalGroup, courseFromFinals);
+                }
             }
         }
-        for(CoursePreferences choiceCourse : finalSystem.getChoiceSemesterA()){
-            if(isConflictFree) {
-                String key = choiceCourse.getCourse_id_name() + '-' + choiceCourse.getGroup_number();
-                List<CSCoursesChoice> courseFromFinals = choiceGroups.get(key);
-                isConflictFree = isConflictFree(choiceList, courseFromFinals);
-            }
-        }
-
-        return isConflictFree;
-    }
-
-    private boolean searchConflictInSemesterBChoice(FinalSystem finalSystem, boolean isConflictFree, List<CSCoursesChoice> choiceList,
-                                              Map<String, List<CSCoursesRequired>> requiredGroups, Map<String, List<CSCoursesChoice>> choiceGroups){
-        for(CoursePreferences reqCourse : finalSystem.getRequiredSemesterB()){
-            if(isConflictFree) {
-                String key = reqCourse.getCourse_id_name() + '-' + reqCourse.getGroup_number();
-                List<CSCoursesRequired> courseFromFinals = requiredGroups.get(key);
-                isConflictFree = isConflictFree(choiceList, courseFromFinals);
-            }
-        }
-        for(CoursePreferences choiceCourse : finalSystem.getChoiceSemesterB()){
-            if(isConflictFree) {
-                String key = choiceCourse.getCourse_id_name() + '-' + choiceCourse.getGroup_number();
-                List<CSCoursesChoice> courseFromFinals = choiceGroups.get(key);
-                isConflictFree = isConflictFree(choiceList, courseFromFinals);
+        if(finalSystem.getChoiceSemesterB() != null) {
+            for (CoursePreferences choiceCourse : finalSystemHelper.getChoiceSemesterB()) {
+                if (isConflictFree) {
+                    String key = choiceCourse.getCourseCodeName() + '-' + choiceCourse.getLessonCode();
+                    List<CSCoursesChoice> courseFromFinals = choiceGroups.get(key);
+                    if(choiceCourse.isHasExercise()){
+                        String keyExercise = choiceCourse.getCourseCodeName() + '-' + choiceCourse.getExerciseCode();
+                        courseFromFinals.addAll(choiceGroups.get(keyExercise));
+                    }
+                    isConflictFree = isConflictFree(optionalGroup, courseFromFinals);
+                }
             }
         }
         return isConflictFree;
 
     }
+
+    private boolean searchConflictInSemesterAChoice(FinalSystem finalSystem, boolean isConflictFree, List<CSCoursesChoice> optionalGroup,
+                                              Map<String, List<CSCoursesRequired>> requiredGroups, Map<String, List<CSCoursesChoice>> choiceGroups){
+        if(finalSystem.getRequiredSemesterA() != null) {
+            for (CoursePreferences reqCourse : finalSystemHelper.getRequiredSemesterA()) {
+                if (isConflictFree) {
+                    String key = reqCourse.getCourseCodeName() + '-' + reqCourse.getLessonCode();
+                    List<CSCoursesRequired> courseFromFinals = requiredGroups.get(key);
+                    if(reqCourse.isHasExercise()){
+                        String keyExercise = reqCourse.getCourseCodeName() + '-' + reqCourse.getExerciseCode();
+                        courseFromFinals.addAll(requiredGroups.get(keyExercise));
+                    }
+                    isConflictFree = isConflictFree(optionalGroup, courseFromFinals);
+                }
+            }
+        }
+        if(finalSystem.getChoiceSemesterA() != null) {
+            for (CoursePreferences choiceCourse : finalSystemHelper.getChoiceSemesterA()) {
+                if (isConflictFree) {
+                    String key = choiceCourse.getCourseCodeName() + '-' + choiceCourse.getLessonCode();
+                    List<CSCoursesChoice> courseFromFinals = choiceGroups.get(key);
+                    if(choiceCourse.isHasExercise()){
+                        String keyExercise = choiceCourse.getCourseCodeName() + '-' + choiceCourse.getExerciseCode();
+                        courseFromFinals.addAll(choiceGroups.get(keyExercise));
+                    }
+                    isConflictFree = isConflictFree(optionalGroup, courseFromFinals);
+                }
+            }
+        }
+        return isConflictFree;
+    }
+
+    private boolean searchConflictInSemesterBChoice(FinalSystem finalSystem, boolean isConflictFree, List<CSCoursesChoice> optionalGroup,
+                                              Map<String, List<CSCoursesRequired>> requiredGroups, Map<String, List<CSCoursesChoice>> choiceGroups){
+        if(finalSystem.getRequiredSemesterB() != null) {
+            for (CoursePreferences reqCourse : finalSystemHelper.getRequiredSemesterB()) {
+                if (isConflictFree) {
+                    String key = reqCourse.getCourseCodeName() + '-' + reqCourse.getLessonCode();
+                    List<CSCoursesRequired> courseFromFinals = requiredGroups.get(key);
+                    if(reqCourse.isHasExercise()){
+                        String keyExercise = reqCourse.getCourseCodeName() + '-' + reqCourse.getExerciseCode();
+                        courseFromFinals.addAll(requiredGroups.get(keyExercise));
+                    }
+                    isConflictFree = isConflictFree(optionalGroup, courseFromFinals);
+                }
+            }
+        }
+        if(finalSystem.getChoiceSemesterB() != null) {
+            for (CoursePreferences choiceCourse : finalSystemHelper.getChoiceSemesterB()) {
+                if (isConflictFree) {
+                    String key = choiceCourse.getCourseCodeName() + '-' + choiceCourse.getLessonCode();
+                    List<CSCoursesChoice> courseFromFinals = choiceGroups.get(key);
+                    if(choiceCourse.isHasExercise()){
+                        String keyExercise = choiceCourse.getCourseCodeName() + '-' + choiceCourse.getExerciseCode();
+                        courseFromFinals.addAll(choiceGroups.get(keyExercise));
+                    }
+                    isConflictFree = isConflictFree(optionalGroup, courseFromFinals);
+                }
+            }
+        }
+        return isConflictFree;
+    }
+
 
     private boolean isConflicted(String type,String key1, String key2, String exeKey1, String exeKey2, Map<String, List<CSCoursesRequired>> requiredGroups, Map<String, List<CSCoursesChoice>> choiceGroups){
-        boolean isConflicted = false;
+        boolean isConflictFree = false;
 
         switch (type){
             case REQ_REQ_CONFLICTS:
@@ -278,7 +372,7 @@ public class ScheduleValidatorService {
                     if(exeKey2 != null)
                         list2.addAll(requiredGroups.get(exeKey2));
                 }
-                isConflicted =  isConflictFree(list1, list2);
+                isConflictFree =  isConflictFree(list1, list2);
                 break;
 
             case REQ_CHOICE_CONFLICTS:
@@ -290,7 +384,7 @@ public class ScheduleValidatorService {
                     if(exeKey2 != null)
                         list4.addAll(choiceGroups.get(exeKey2));
                 }
-                isConflicted =  isConflictFree(list3, list4);
+                isConflictFree =  isConflictFree(list3, list4);
                 break;
 
             case CHOICE_CHOICE_CONFLICTS:
@@ -302,10 +396,10 @@ public class ScheduleValidatorService {
                     if(exeKey2 != null)
                         list6.addAll(choiceGroups.get(exeKey2));
                 }
-                isConflicted =  isConflictFree(list5, list6);
+                isConflictFree =  isConflictFree(list5, list6);
                 break;
         }
-        return isConflicted;
+        return isConflictFree;
     }
 
 
@@ -339,19 +433,44 @@ public class ScheduleValidatorService {
         return start1.isBefore(end2) && start2.isBefore(end1); // Check if the time ranges overlap
     }
 
-    private void addCourseToFinalSystem(FinalSystem finalSystem, String type, CoursePreferences finalCourse, String semester) {
+    private void addCourseToFinalSystem(FinalSystem finalSystem, String type, CoursePreferences finalCourse, String semester, List<String> changes) {
 
         if(type.equals(REQ_CHOICE_CONFLICTS)){
-            if(semester.equals("A"))
-                finalSystem.addReqCourseSemA(finalCourse);
-            if(semester.equals("B"))
-                finalSystem.addReqCourseSemB(finalCourse);
+            List<CSCoursesRequired> requiredList = requiredCoursesService.getLessonHours(finalCourse.getLessonCode());
+            if(finalCourse.isHasExercise()){
+                requiredList.addAll(requiredCoursesService.getLessonHours(finalCourse.getExerciseCode()));
+            }
+            if(semester.equals("A")) {
+                finalSystemHelper.addReqCourseSemA(finalCourse);
+                for(CSCoursesRequired required : requiredList)
+                    finalSystem.addReqCourseSemA(required);
+                finalSystem.addChangesA(changes);
+            }
+            if(semester.equals("B")) {
+                finalSystemHelper.addReqCourseSemB(finalCourse);
+                for(CSCoursesRequired required : requiredList)
+                    finalSystem.addReqCourseSemB(required);
+                finalSystem.addChangesB(changes);
+            }
         }
         if(type.equals(CHOICE_CHOICE_CONFLICTS)){
-            if(semester.equals("A"))
-                finalSystem.addChoCourseSemA(finalCourse);
-            if(semester.equals("B"))
-                finalSystem.addChoCourseSemB(finalCourse);
+            List<CSCoursesChoice> choiceList = choiceCoursesService.getLessonHours(finalCourse.getLessonCode());
+            if(finalCourse.isHasExercise()){
+                choiceList.addAll(choiceCoursesService.getLessonHours(finalCourse.getExerciseCode()));
+            }
+            if(semester.equals("A")) {
+                finalSystemHelper.addChoCourseSemA(finalCourse);
+                for(CSCoursesChoice choice : choiceList)
+                    finalSystem.addChoCourseSemA(choice);
+                finalSystem.addChangesA(changes);
+
+            }
+            if(semester.equals("B")) {
+                finalSystemHelper.addChoCourseSemB(finalCourse);
+                for(CSCoursesChoice choice : choiceList)
+                    finalSystem.addChoCourseSemB(choice);
+                finalSystem.addChangesB(changes);
+            }
         }
     }
 
@@ -397,7 +516,25 @@ public class ScheduleValidatorService {
 
 
     private String createExerciseNumberFromGroupNumber(String groupNumber) {
-        Integer value = Integer.getInteger(groupNumber) + 1;
-        return value.toString();
+
+        if (groupNumber == null || groupNumber.length() < 2) {
+            throw new IllegalArgumentException("lessonCode is either null or too short to process");
+        }
+        if(groupNumber.endsWith("9")){
+            String lastTwoChars = groupNumber.substring(groupNumber.length() - 2);
+            int number = Integer.parseInt(lastTwoChars);
+            number += 1;
+            String baseString = groupNumber.substring(0, groupNumber.length() - 2);
+            return baseString + String.format("%02d", number);
+        }
+        else{
+            String lastChar = groupNumber.substring(groupNumber.length() - 1);
+            int number = Integer.parseInt(lastChar);
+            number += 1;
+            String baseString = groupNumber.substring(0, groupNumber.length() - 1);
+            return baseString + number;
+        }
+
+
     }
 }

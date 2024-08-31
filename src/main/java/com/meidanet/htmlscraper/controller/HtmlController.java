@@ -1,34 +1,37 @@
 package com.meidanet.htmlscraper.controller;
 
-import com.meidanet.htmlscraper.controller.html.parser.CoursesConditionsParser;
-import com.meidanet.htmlscraper.controller.html.parser.StuCoursesHtmlParser;
-import com.meidanet.htmlscraper.database.computer.science.course.choice.ChoiceCoursesRepository;
-import com.meidanet.htmlscraper.database.computer.science.course.choice.ChoiceCoursesService;
-import com.meidanet.htmlscraper.database.computer.science.course.condition.CSCoursesConditions;
-import com.meidanet.htmlscraper.database.computer.science.course.condition.CoursesConditionsRepository;
-import com.meidanet.htmlscraper.database.computer.science.course.condition.CoursesConditionsService;
-import com.meidanet.htmlscraper.database.computer.science.course.required.RequiredCoursesRepository;
-import com.meidanet.htmlscraper.database.computer.science.course.required.RequiredCoursesService;
-import com.meidanet.htmlscraper.database.courses.Course;
-import com.meidanet.htmlscraper.database.courses.CourseRepository;
-import com.meidanet.htmlscraper.database.courses.CourseService;
-import com.meidanet.htmlscraper.database.user.Student;
-import com.meidanet.htmlscraper.database.user.StudentRepository;
-import com.meidanet.htmlscraper.database.user.StudentService;
+import com.meidanet.database.computer.science.course.choice.ChoiceCoursesRepository;
+import com.meidanet.database.computer.science.course.choice.ChoiceCoursesService;
+import com.meidanet.database.computer.science.course.condition.CSCoursesConditions;
+import com.meidanet.database.computer.science.course.condition.CoursesConditionsRepository;
+import com.meidanet.database.computer.science.course.condition.CoursesConditionsService;
+import com.meidanet.database.computer.science.course.required.RequiredCoursesRepository;
+import com.meidanet.database.computer.science.course.required.RequiredCoursesService;
+import com.meidanet.database.student.courses.Course;
+import com.meidanet.database.student.courses.CourseRepository;
+import com.meidanet.database.student.courses.CourseService;
+import com.meidanet.database.student.data.Student;
+import com.meidanet.database.student.data.StudentRepository;
+import com.meidanet.database.student.data.StudentService;
+import com.meidanet.htmlscraper.html.parser.CoursesConditionsParser;
+import com.meidanet.htmlscraper.html.parser.StuCoursesHtmlParser;
+import com.meidanet.htmlscraper.html.parser.StuDataHtmlParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @RestController
+@RequestMapping("/html")
 public class HtmlController {
 
     private final CourseRepository courseRepository;
-    private final CourseService courseService;
+    private CourseService courseService;
     private final StudentRepository studentRepository;
     private final StudentService studentService;
     private final RequiredCoursesRepository requiredCoursesRepository;
@@ -55,27 +58,28 @@ public class HtmlController {
         this.choiceCoursesService = choiceCoursesService;
         this.csCoursesConditionsRepository = csCoursesConditionsRepository;
         this.csCoursesConditionsService = csCoursesConditionsService;
+
 }
 
-//    @PostMapping("/upload-stu-data")
-//    public ResponseEntity<List<String>> receiveStuDataHtml(@RequestBody HtmlSource htmlSource) {
-//        if (htmlSource == null || htmlSource.getHtmlSource() == null || htmlSource.getHtmlSource().isEmpty()) {
-//            return ResponseEntity.badRequest().body(null);
-//        }
-//
-//        List<String> studentData = StuDataHtmlParser.extractStudentData(htmlSource.getHtmlSource());
-//
-//        if (studentData.size() < 3) {
-//            return ResponseEntity.badRequest().body(null); // Or handle appropriately
-//        }
-//
-//        Student student = studentService.addStudent(studentData);
-//        if (student != null) {
-//            studentRepository.save(student);
-//        }
-//
-//        return ResponseEntity.ok(studentData);
-//    }
+    @PostMapping("/upload-stu-data")
+    public ResponseEntity<List<String>> receiveStuDataHtml(@RequestBody HtmlSource htmlSource) {
+        if (htmlSource == null || htmlSource.getHtmlSource() == null || htmlSource.getHtmlSource().isEmpty()) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        List<String> studentData = StuDataHtmlParser.extractStudentData(htmlSource.getHtmlSource());
+
+        if (studentData.size() < 3) {
+            return ResponseEntity.badRequest().body(null); // Or handle appropriately
+        }
+
+        Student student = studentService.addStudent(studentData);
+        if (student != null) {
+            studentRepository.save(student);
+        }
+
+        return ResponseEntity.ok(studentData);
+    }
 
     @PostMapping("/upload-courses")
     public ResponseEntity<List<Course>> receiveHtml(@RequestBody HtmlSource htmlSource) {

@@ -1,88 +1,30 @@
 package com.meidanet.system.preference.form;
 
-import com.meidanet.system.preference.form.course.request.CoursePreferences;
-
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.meidanet.system.preference.form.course.request.SelectedCoursesLists;
 
 public class PreferencesForm {
-    private String studentID;
-    private List<CoursePreferences> requiredSemesterA;
-    private List<CoursePreferences> choiceSemesterA;
-    private List<CoursePreferences> requiredSemesterB;
-    private List<CoursePreferences> choiceSemesterB;
 
-    // Default constructor
-    public PreferencesForm(){
+    @JsonProperty("selectedCoursesData")
+    private SelectedCoursesLists selectedCoursesLists;
+
+    @JsonProperty("studentId")
+    private String studentId;
+
+    // Getters and setters
+    public SelectedCoursesLists getSelectedCoursesData() {
+        return selectedCoursesLists;
     }
 
-    // Getters and Setters
-    public List<CoursePreferences> getRequiredSemesterA() {
-        return requiredSemesterA;
+    public void setSelectedCoursesData(SelectedCoursesLists selectedCoursesData) {
+        this.selectedCoursesLists = selectedCoursesData;
     }
 
-    public void setRequiredSemesterA(List<CoursePreferences> requiredSemesterA) {
-        this.requiredSemesterA = requiredSemesterA;
+    public String getStudentId() {
+        return studentId;
     }
 
-    public List<CoursePreferences> getChoiceSemesterA() {
-        return choiceSemesterA;
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
     }
-
-    public void setChoiceSemesterA(List<CoursePreferences> choiceSemesterA) {
-        this.choiceSemesterA = choiceSemesterA;
-    }
-
-    public List<CoursePreferences> getRequiredSemesterB() {
-        return requiredSemesterB;
-    }
-
-    public void setRequiredSemesterB(List<CoursePreferences> requiredSemesterB) {
-        this.requiredSemesterB = requiredSemesterB;
-    }
-
-    public List<CoursePreferences> getChoiceSemesterB() {
-        return choiceSemesterB;
-    }
-
-    public void setChoiceSemesterB(List<CoursePreferences> choiceSemesterB) {
-        this.choiceSemesterB = choiceSemesterB;
-    }
-
-    public String getStudentID() {
-        return studentID;
-    }
-
-    public void setStudentID(String studentID) {
-        this.studentID = studentID;
-    }
-
-//    public void addReqCourseSemA(CoursePreferences course) {
-//        if(requiredSemesterA.isEmpty()){
-//            requiredSemesterA = new ArrayList<>();
-//        }
-//        requiredSemesterA.add(course);
-//    }
-//
-//    public void addChoiceCourseSemA(CoursePreferences course) {
-//        if(choiceSemesterA.isEmpty()){
-//            choiceSemesterA = new ArrayList<>();
-//        }
-//        choiceSemesterA.add(course);
-//    }
-//
-//    public void addReqCourseSemB(CoursePreferences course) {
-//        if(requiredSemesterB.isEmpty()){
-//            requiredSemesterB = new ArrayList<>();
-//        }
-//        requiredSemesterB.add(course);
-//    }
-//
-//    public void addChoiceCourseSemB(CoursePreferences course) {
-//        if(choiceSemesterB.isEmpty()){
-//            choiceSemesterB = new ArrayList<>();
-//        }
-//        choiceSemesterB.add(course);
-//    }
-
-
 }

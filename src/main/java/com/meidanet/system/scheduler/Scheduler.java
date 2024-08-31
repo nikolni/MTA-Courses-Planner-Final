@@ -1,33 +1,27 @@
 package com.meidanet.system.scheduler;
 
-import com.meidanet.htmlscraper.database.computer.science.course.choice.CSCoursesChoice;
-import com.meidanet.htmlscraper.database.computer.science.course.choice.ChoiceCoursesService;
-import com.meidanet.htmlscraper.database.computer.science.course.condition.CSCoursesConditions;
-import com.meidanet.htmlscraper.database.computer.science.course.condition.CoursesConditionsService;
-import com.meidanet.htmlscraper.database.computer.science.course.required.CSCoursesRequired;
-import com.meidanet.htmlscraper.database.computer.science.course.required.RequiredCoursesService;
-import com.meidanet.htmlscraper.database.courses.Course;
-import com.meidanet.htmlscraper.database.courses.CourseService;
+import com.meidanet.database.computer.science.course.choice.CSCoursesChoice;
+import com.meidanet.database.computer.science.course.choice.ChoiceCoursesService;
+import com.meidanet.database.computer.science.course.condition.CSCoursesConditions;
+import com.meidanet.database.computer.science.course.condition.CoursesConditionsService;
+import com.meidanet.database.computer.science.course.required.CSCoursesRequired;
+import com.meidanet.database.computer.science.course.required.RequiredCoursesService;
+import com.meidanet.database.student.courses.Course;
+import com.meidanet.database.student.courses.CourseService;
 import com.meidanet.system.preference.form.PreferencesForm;
 import com.meidanet.system.preference.form.course.request.CoursePreferences;
 import com.meidanet.system.scheduler.answer.FinalSystem;
-import com.meidanet.system.scheduler.helper.Splitter;
 import com.meidanet.system.scheduler.validation.CourseConditionsValidator;
 import com.meidanet.system.scheduler.validation.ScheduleValidatorService;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.meidanet.system.scheduler.helper.Splitter.removeLessonFromCourseID;
-
 public class Scheduler {
-
-
-    private final List<String> preferredRequiredCoursesIDs = new ArrayList<>();
-    private final List<String> preferredChoiceCoursesIDs = new ArrayList<>();
 
     private List<Course> studentCourses;
     private List<CSCoursesConditions> invalidCoursesRequest;
+
 
     private final CourseService courseService;
     private final RequiredCoursesService requiredCoursesService;
@@ -35,85 +29,78 @@ public class Scheduler {
     private final CoursesConditionsService csCoursesConditionsService;
 
 
-
     public Scheduler(CourseService courseService, RequiredCoursesService requiredCoursesService,
-                     ChoiceCoursesService choiceCoursesService, CoursesConditionsService csCoursesConditionsService) {
-
+                                     ChoiceCoursesService choiceCoursesService, CoursesConditionsService csCoursesConditionsService)
+    {
         this.courseService = courseService;
         this.requiredCoursesService = requiredCoursesService;
         this.choiceCoursesService = choiceCoursesService;
         this.csCoursesConditionsService = csCoursesConditionsService;
+
     }
 
 
-    public void getSchedule(PreferencesForm preferencesForm, FinalSystem finalSystem) {
-        finalSystem.setStudentID(preferencesForm.getStudentID());
 
-        ScheduleValidatorService scheduleValidatorService = new ScheduleValidatorService();
+    public void getSchedule(PreferencesForm preferencesForm, FinalSystem finalSystem) {
+        finalSystem.setStudentID(preferencesForm.getStudentId());
+
+        ScheduleValidatorService scheduleValidatorService = new ScheduleValidatorService(requiredCoursesService, choiceCoursesService);
         getScheduleSemesterA(preferencesForm, finalSystem, scheduleValidatorService);
         getScheduleSemesterB(preferencesForm, finalSystem, scheduleValidatorService);
     }
 
     private void getScheduleSemesterA(PreferencesForm preferencesForm,FinalSystem finalSystem, ScheduleValidatorService scheduleValidatorService) {
         //semester A
-        createListsOfCoursesIDs(preferencesForm.getRequiredSemesterA(), preferencesForm.getChoiceSemesterA());
-
-        getStudentCourses(preferencesForm.getStudentID());
+        getStudentCourses(preferencesForm.getStudentId());
 
         //fills the class member invalidCoursesRequest
-        checkConditions(finalSystem);
+        checkConditions(preferencesForm.getSelectedCoursesData().getRequiredSemesterA(), preferencesForm.getSelectedCoursesData().getChoiceSemesterA(),
+                finalSystem, "A");
 
-        List<CoursePreferences> validRequiredLessons = removeBedLessons(preferencesForm.getRequiredSemesterA());
-        List<CoursePreferences> validChoiceLessons = removeBedLessons(preferencesForm.getChoiceSemesterA());
+        List<CoursePreferences> validRequiredLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getRequiredSemesterA());
+        List<CoursePreferences> validChoiceLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getChoiceSemesterA());
 
         List<CSCoursesRequired> requiredLessonsHours = getRequiredLessonsHours(validRequiredLessons, "A");
         List<CSCoursesChoice> choiceLessonsHours = getChoiceLessonsHours(validChoiceLessons, "A");
 
-        scheduleValidatorService.validateForSemesterA(requiredLessonsHours, choiceLessonsHours, preferencesForm, finalSystem);
+        scheduleValidatorService.validateForSemesterA(validRequiredLessons, requiredLessonsHours, validChoiceLessons, choiceLessonsHours, finalSystem);
     }
 
     private void getScheduleSemesterB(PreferencesForm preferencesForm, FinalSystem finalSystem, ScheduleValidatorService scheduleValidatorService) {
-
         //semester B
-        createListsOfCoursesIDs(preferencesForm.getRequiredSemesterB(), preferencesForm.getChoiceSemesterB());
-
-        getStudentCourses(preferencesForm.getStudentID());
+        getStudentCourses(preferencesForm.getStudentId());
 
         //fills the class member invalidCoursesRequest
-        checkConditions(finalSystem);
+        checkConditions(preferencesForm.getSelectedCoursesData().getRequiredSemesterB(), preferencesForm.getSelectedCoursesData().getChoiceSemesterB(),
+                finalSystem, "B");
 
-        List<CoursePreferences> validRequiredLessons = removeBedLessons(preferencesForm.getRequiredSemesterB());
-        List<CoursePreferences> validChoiceLessons = removeBedLessons(preferencesForm.getChoiceSemesterB());
+        List<CoursePreferences> validRequiredLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getRequiredSemesterB());
+        List<CoursePreferences> validChoiceLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getChoiceSemesterB());
 
         List<CSCoursesRequired> requiredLessonsHours = getRequiredLessonsHours(validRequiredLessons, "B");
         List<CSCoursesChoice> choiceLessonsHours = getChoiceLessonsHours(validChoiceLessons, "B");
 
-        scheduleValidatorService.validateForSemesterB(requiredLessonsHours, choiceLessonsHours, preferencesForm, finalSystem);
+        scheduleValidatorService.validateForSemesterB(validRequiredLessons, requiredLessonsHours, validChoiceLessons, choiceLessonsHours, finalSystem);
+
 
     }
 
-    private void createListsOfCoursesIDs(List<CoursePreferences> requiredCourses, List<CoursePreferences> choiceCourses) {
-        for (CoursePreferences course : requiredCourses){
-            preferredRequiredCoursesIDs.add(removeLessonFromCourseID(course.getGroup_number()));
-        }
-        for (CoursePreferences course : choiceCourses){
-            preferredChoiceCoursesIDs.add(removeLessonFromCourseID(course.getGroup_number()));
-        }
-    }
-
-    private void getStudentCourses(String studentID) {
-        studentCourses = courseService.getStudentCourses(studentID);
+    private void getStudentCourses(String student_id) {
+        studentCourses = courseService.getStudentCourses(student_id);
     }
 
 
-    private void checkConditions(FinalSystem finalSystem) {
-        CourseConditionsValidator conditionsValidator = new CourseConditionsValidator(preferredRequiredCoursesIDs, preferredChoiceCoursesIDs,
-                studentCourses, csCoursesConditionsService );
+    private void checkConditions(List<CoursePreferences> requiredList, List<CoursePreferences> choiceList, FinalSystem finalSystem, String semester) {
+        CourseConditionsValidator conditionsValidator = new CourseConditionsValidator(studentCourses, csCoursesConditionsService, requiredList, choiceList );
         invalidCoursesRequest = conditionsValidator.getBedCoursesRequest();
-        List<String> errors = conditionsValidator.getErrors();
+        List<String> errors = conditionsValidator.getErrorsList();
         if(errors != null){
-            for(String error : errors)
-                finalSystem.addError(error);
+            for(String error : errors) {
+                if(semester.equals("A"))
+                    finalSystem.addErrorA(error);
+                else
+                    finalSystem.addErrorB(error);
+            }
         }
     }
 
@@ -122,15 +109,17 @@ public class Scheduler {
         boolean invalidLesson;
 
         for (CoursePreferences course : courses) {
-            invalidLesson = false;
-            for (CSCoursesConditions invalidCourse : invalidCoursesRequest){
-                if(removeLessonFromCourseID(course.getGroup_number()).equals(
-                        Splitter.stringSplitByHyphen(invalidCourse.getCourse_id_name()).get(0))){
-                    invalidLesson = true;
+            if (!course.getCourseCodeName().isEmpty()) {
+                invalidLesson = false;
+                for (CSCoursesConditions invalidCourse : invalidCoursesRequest) {
+                    if (course.getCourseCodeName().equals(invalidCourse.getCourse_id_name())) {
+                        invalidLesson = true;
+                        break;
+                    }
                 }
-            }
-            if(!invalidLesson){
-                validCourses.add(course);
+                if (!invalidLesson) {
+                    validCourses.add(course);
+                }
             }
         }
 
@@ -141,15 +130,15 @@ public class Scheduler {
         List<CSCoursesRequired> courseHours = new ArrayList<>();
 
         for (CoursePreferences course : validCourses){
-            if(course.getGroup_number().equals("dc"))
-                courseHours.addAll(requiredCoursesService.getAllCourseLessons(course.getCourse_id_name(), semester));
+            if(course.getLessonCode().equals("dc"))
+                courseHours.addAll(requiredCoursesService.getAllCourseLessons(course.getCourseCodeName(), semester));
             else
-                courseHours.addAll(requiredCoursesService.getLessonHours(course.getGroup_number()));
-            if(course.isCourseHasExercise()){
-                if(course.getExerciseLesson().equals("dc"))
-                    courseHours.addAll(requiredCoursesService.getAllCourseExercises(course.getCourse_id_name(), semester));
+                courseHours.addAll(requiredCoursesService.getLessonHours(course.getLessonCode()));
+            if(course.isHasExercise()){
+                if(course.getExerciseCode().equals("dc"))
+                    courseHours.addAll(requiredCoursesService.getAllCourseExercises(course.getCourseCodeName(), semester));
                 else
-                    courseHours.addAll(requiredCoursesService.getLessonHours(course.getExerciseLesson()));
+                    courseHours.addAll(requiredCoursesService.getLessonHours(course.getExerciseCode()));
             }
         }
         return courseHours;
@@ -159,18 +148,20 @@ public class Scheduler {
         List<CSCoursesChoice> courseHours = new ArrayList<>();
 
         for (CoursePreferences course : validCourses){
-            if(course.getGroup_number().equals("dc"))
-                courseHours.addAll(choiceCoursesService.getAllCourseLessons(course.getCourse_id_name(), semester));
+            if(course.getLessonCode().equals("dc"))
+                courseHours.addAll(choiceCoursesService.getAllCourseLessons(course.getCourseCodeName(), semester));
             else
-                courseHours.addAll(choiceCoursesService.getLessonHours(course.getGroup_number()));
-            if(course.isCourseHasExercise()){
-                if(course.getExerciseLesson().equals("dc"))
-                    courseHours.addAll(choiceCoursesService.getAllCourseExercises(course.getCourse_id_name(), semester));
+                courseHours.addAll(choiceCoursesService.getLessonHours(course.getLessonCode()));
+            if(course.isHasExercise()){
+                if(course.getExerciseCode().equals("dc"))
+                    courseHours.addAll(choiceCoursesService.getAllCourseExercises(course.getCourseCodeName(), semester));
                 else
-                    courseHours.addAll(choiceCoursesService.getLessonHours(course.getExerciseLesson()));
+                    courseHours.addAll(choiceCoursesService.getLessonHours(course.getExerciseCode()));
             }
         }
         return courseHours;
     }
+
+
 
 }
