@@ -36,4 +36,8 @@ public class StudentService {
             return null;
         }
     }
+
+    public boolean isStudentRegistered(String student_id){
+        return !studentRepository.findByStudent_id(student_id).isEmpty();
+    }
 }
