@@ -8,6 +8,7 @@ import com.meidanet.database.computer.science.course.required.CSCoursesRequired;
 import com.meidanet.database.computer.science.course.required.RequiredCoursesService;
 import com.meidanet.database.student.courses.Course;
 import com.meidanet.database.student.courses.CourseService;
+import com.meidanet.database.student.data.StudentService;
 import com.meidanet.system.preference.form.PreferencesForm;
 import com.meidanet.system.preference.form.course.request.CoursePreferences;
 import com.meidanet.system.scheduler.answer.FinalSystem;
@@ -19,74 +20,78 @@ import java.util.List;
 
 public class Scheduler {
 
+    boolean isStudentRegistered = true;
     private List<Course> studentCourses;
     private List<CSCoursesConditions> invalidCoursesRequest;
 
-
+    private final StudentService studentService;
     private final CourseService courseService;
     private final RequiredCoursesService requiredCoursesService;
     private final ChoiceCoursesService choiceCoursesService;
     private final CoursesConditionsService csCoursesConditionsService;
 
 
-    public Scheduler(CourseService courseService, RequiredCoursesService requiredCoursesService,
+    public Scheduler(StudentService studentService, CourseService courseService, RequiredCoursesService requiredCoursesService,
                                      ChoiceCoursesService choiceCoursesService, CoursesConditionsService csCoursesConditionsService)
     {
+        this.studentService = studentService;
         this.courseService = courseService;
         this.requiredCoursesService = requiredCoursesService;
         this.choiceCoursesService = choiceCoursesService;
         this.csCoursesConditionsService = csCoursesConditionsService;
-
     }
 
 
 
-    public void getSchedule(PreferencesForm preferencesForm, FinalSystem finalSystem) {
+    public boolean getSchedule(PreferencesForm preferencesForm, FinalSystem finalSystem) {
         finalSystem.setStudentID(preferencesForm.getStudentId());
 
         ScheduleValidatorService scheduleValidatorService = new ScheduleValidatorService(requiredCoursesService, choiceCoursesService);
         getScheduleSemesterA(preferencesForm, finalSystem, scheduleValidatorService);
         getScheduleSemesterB(preferencesForm, finalSystem, scheduleValidatorService);
+        return isStudentRegistered;
     }
 
     private void getScheduleSemesterA(PreferencesForm preferencesForm,FinalSystem finalSystem, ScheduleValidatorService scheduleValidatorService) {
         //semester A
         getStudentCourses(preferencesForm.getStudentId());
+        if(isStudentRegistered) {
+            //fills the class member invalidCoursesRequest
+            checkConditions(preferencesForm.getSelectedCoursesData().getRequiredSemesterA(), preferencesForm.getSelectedCoursesData().getChoiceSemesterA(),
+                    finalSystem, "A");
 
-        //fills the class member invalidCoursesRequest
-        checkConditions(preferencesForm.getSelectedCoursesData().getRequiredSemesterA(), preferencesForm.getSelectedCoursesData().getChoiceSemesterA(),
-                finalSystem, "A");
+            List<CoursePreferences> validRequiredLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getRequiredSemesterA());
+            List<CoursePreferences> validChoiceLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getChoiceSemesterA());
 
-        List<CoursePreferences> validRequiredLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getRequiredSemesterA());
-        List<CoursePreferences> validChoiceLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getChoiceSemesterA());
+            List<CSCoursesRequired> requiredLessonsHours = getRequiredLessonsHours(validRequiredLessons, "A");
+            List<CSCoursesChoice> choiceLessonsHours = getChoiceLessonsHours(validChoiceLessons, "A");
 
-        List<CSCoursesRequired> requiredLessonsHours = getRequiredLessonsHours(validRequiredLessons, "A");
-        List<CSCoursesChoice> choiceLessonsHours = getChoiceLessonsHours(validChoiceLessons, "A");
-
-        scheduleValidatorService.validateForSemesterA(validRequiredLessons, requiredLessonsHours, validChoiceLessons, choiceLessonsHours, finalSystem);
+            scheduleValidatorService.validateForSemesterA(validRequiredLessons, requiredLessonsHours, validChoiceLessons, choiceLessonsHours, finalSystem);
+        }
     }
 
     private void getScheduleSemesterB(PreferencesForm preferencesForm, FinalSystem finalSystem, ScheduleValidatorService scheduleValidatorService) {
         //semester B
         getStudentCourses(preferencesForm.getStudentId());
+        if(isStudentRegistered) {
+            //fills the class member invalidCoursesRequest
+            checkConditions(preferencesForm.getSelectedCoursesData().getRequiredSemesterB(), preferencesForm.getSelectedCoursesData().getChoiceSemesterB(),
+                    finalSystem, "B");
 
-        //fills the class member invalidCoursesRequest
-        checkConditions(preferencesForm.getSelectedCoursesData().getRequiredSemesterB(), preferencesForm.getSelectedCoursesData().getChoiceSemesterB(),
-                finalSystem, "B");
+            List<CoursePreferences> validRequiredLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getRequiredSemesterB());
+            List<CoursePreferences> validChoiceLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getChoiceSemesterB());
 
-        List<CoursePreferences> validRequiredLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getRequiredSemesterB());
-        List<CoursePreferences> validChoiceLessons = removeBedLessons(preferencesForm.getSelectedCoursesData().getChoiceSemesterB());
+            List<CSCoursesRequired> requiredLessonsHours = getRequiredLessonsHours(validRequiredLessons, "B");
+            List<CSCoursesChoice> choiceLessonsHours = getChoiceLessonsHours(validChoiceLessons, "B");
 
-        List<CSCoursesRequired> requiredLessonsHours = getRequiredLessonsHours(validRequiredLessons, "B");
-        List<CSCoursesChoice> choiceLessonsHours = getChoiceLessonsHours(validChoiceLessons, "B");
-
-        scheduleValidatorService.validateForSemesterB(validRequiredLessons, requiredLessonsHours, validChoiceLessons, choiceLessonsHours, finalSystem);
-
-
+            scheduleValidatorService.validateForSemesterB(validRequiredLessons, requiredLessonsHours, validChoiceLessons, choiceLessonsHours, finalSystem);
+        }
     }
 
     private void getStudentCourses(String student_id) {
-        studentCourses = courseService.getStudentCourses(student_id);
+        isStudentRegistered = studentService.isStudentRegistered(student_id);
+        if(isStudentRegistered)
+            studentCourses = courseService.getStudentCourses(student_id);
     }
 
 
