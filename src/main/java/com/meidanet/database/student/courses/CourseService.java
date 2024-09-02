@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -22,7 +23,7 @@ public class CourseService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    //@Transactional
+    @Transactional
     public Course addCourse(String[] courseDetails, String stuID) {
         String courseID = courseDetails[0];
         // Check if the course name already exists
