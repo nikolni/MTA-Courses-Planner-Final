@@ -196,19 +196,23 @@ public class CourseConditionsValidator {
             if(!flag){
                 //String conditionsCourseID = stringSplitByHyphen(course_id_name).get(0);
                 for (CoursePreferences courseCodeName : preferredRequiredCourses) {
-                    String courseName = stringSplitByHyphen(courseCodeName.getCourseCodeName()).get(1);
-                    if(courseName.equals(parallelCondition) || courseName.equals(parallel_exchangeableCondition)) {
-                        flag = true;
-                        break;
+                    if(!courseCodeName.getCourseCodeName().isEmpty()) {
+                        String courseName = stringSplitByHyphen(courseCodeName.getCourseCodeName()).get(1);
+                        if (courseName.equals(parallelCondition) || courseName.equals(parallel_exchangeableCondition)) {
+                            flag = true;
+                            break;
+                        }
                     }
                 }
 
                 if(!flag){
                     for (CoursePreferences courseCodeName : preferredChoiceCourses) {
-                        String courseName = stringSplitByHyphen(courseCodeName.getCourseCodeName()).get(1);
-                        if(courseName.equals(parallelCondition) || courseName.equals(parallel_exchangeableCondition)) {
-                            flag = true;
-                            break;
+                        if(!courseCodeName.getCourseCodeName().isEmpty()) {
+                            String courseName = stringSplitByHyphen(courseCodeName.getCourseCodeName()).get(1);
+                            if (courseName.equals(parallelCondition) || courseName.equals(parallel_exchangeableCondition)) {
+                                flag = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -241,19 +245,23 @@ public class CourseConditionsValidator {
             if(!flag){
                 //String conditionsCourseID = stringSplitByHyphen(course_id_name).get(0);
                 for (CoursePreferences courseCodeName : preferredRequiredCourses) {
-                    String courseName = stringSplitByHyphen(courseCodeName.getCourseCodeName()).get(1);
-                    if(courseName.equals(excCondition)){
-                        flag = true;
-                        break;
+                    if(!courseCodeName.getCourseCodeName().isEmpty()) {
+                        String courseName = stringSplitByHyphen(courseCodeName.getCourseCodeName()).get(1);
+                        if (courseName.equals(excCondition)) {
+                            flag = true;
+                            break;
+                        }
                     }
                 }
 
                 if(!flag){
                     for (CoursePreferences courseCodeName : preferredChoiceCourses) {
-                        String courseName = stringSplitByHyphen(courseCodeName.getCourseCodeName()).get(1);
-                        if(courseName.equals(excCondition)) {
-                            flag = true;
-                            break;
+                        if(!courseCodeName.getCourseCodeName().isEmpty()) {
+                            String courseName = stringSplitByHyphen(courseCodeName.getCourseCodeName()).get(1);
+                            if (courseName.equals(excCondition)) {
+                                flag = true;
+                                break;
+                            }
                         }
                     }
                 }
