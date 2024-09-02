@@ -2,13 +2,20 @@ package com.meidanet.database.student.data;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 public class StudentService {
+    private final StudentRepository studentRepository;
+
+    @Autowired
+    public StudentService(StudentRepository studentRepository) {
+        this.studentRepository = studentRepository;
+    }
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -28,7 +35,6 @@ public class StudentService {
             student.setUser_name(studentData.get(1));
             student.setStudentID(studentData.get(0));
 
-
             entityManager.persist(student);
             return student;
         } else {
@@ -38,6 +44,7 @@ public class StudentService {
     }
 
     public boolean isStudentRegistered(String student_id){
-        return !studentRepository.findByStudent_id(student_id).isEmpty();
+        Student student = studentRepository.findByStudent_id(student_id);
+        return  (student != null);
     }
 }
