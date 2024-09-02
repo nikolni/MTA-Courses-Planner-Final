@@ -74,6 +74,7 @@ public class ScheduleValidatorService {
 
             CoursePreferences finalCourse;
             String exeLesson1 = "";
+            String exeLesson2;
 
             if(!course1.getLessonCode().equals("dc")){
 
@@ -85,7 +86,10 @@ public class ScheduleValidatorService {
                         if(changes == null)
                             changes = new ArrayList<>();
                         changes.add("In course '" + course1.getCourseCodeName() + "' a default selection was made for the exercise group.");
-                         exeKey1 = course1.getCourseCodeName() + '-' + course1.getExerciseCode();
+                        exeKey1 = course1.getCourseCodeName() + '-' + exeLesson1;
+                    } else {
+                        exeKey1 = course1.getCourseCodeName() + '-' + course1.getExerciseCode();
+                        exeLesson1 = course1.getExerciseCode();
                     }
                 }
 
@@ -95,9 +99,14 @@ public class ScheduleValidatorService {
                             (isCourseCompared.get(course2.getCourseCodeName()) == null)){
                         String key2 = course2.getCourseCodeName() + '-' + course2.getLessonCode();
 
-                        if(course2.isHasExercise() && course2.getExerciseCode().equals("dc")){
-                            String exeLesson2 = createExerciseNumberFromGroupNumber(course2.getLessonCode());
-                            exeKey2 = course2.getCourseCodeName() + '-' + course2.getExerciseCode();
+                        if(course2.isHasExercise()){
+                            if(course2.getExerciseCode().equals("dc")){
+                                exeLesson2 = createExerciseNumberFromGroupNumber(course2.getLessonCode());
+                                exeKey2 = course2.getCourseCodeName() + '-' + exeLesson2;
+                            }
+                            else {
+                                exeKey2 = course2.getCourseCodeName() + '-' + course2.getExerciseCode();
+                            }
                         }
 
                         boolean isConflictFree = isConflicted(type, key1, key2, exeKey1, exeKey2, requiredGroups, choiceGroups);
@@ -365,11 +374,11 @@ public class ScheduleValidatorService {
                 List<CSCoursesRequired> list1 =requiredGroups.get(key1);
                 List<CSCoursesRequired> list2 = requiredGroups.get(key2);
 
-                if(exeKey1 != null){
+                if(exeKey1 != null)
                     list1.addAll(requiredGroups.get(exeKey1));
-                    if(exeKey2 != null)
+                if(exeKey2 != null)
                         list2.addAll(requiredGroups.get(exeKey2));
-                }
+
                 isConflictFree =  isConflictFree(list1, list2);
                 break;
 
@@ -377,11 +386,10 @@ public class ScheduleValidatorService {
                 List<CSCoursesRequired> list3 =requiredGroups.get(key1);
                 List<CSCoursesChoice> list4 = choiceGroups.get(key2);
 
-                if(exeKey1 != null){
+                if(exeKey1 != null)
                     list3.addAll(requiredGroups.get(exeKey1));
-                    if(exeKey2 != null)
+                if(exeKey2 != null)
                         list4.addAll(choiceGroups.get(exeKey2));
-                }
                 isConflictFree =  isConflictFree(list3, list4);
                 break;
 
@@ -389,11 +397,10 @@ public class ScheduleValidatorService {
                 List<CSCoursesChoice> list5 =choiceGroups.get(key1);
                 List<CSCoursesChoice> list6 = choiceGroups.get(key2);
 
-                if(exeKey1 != null){
+                if(exeKey1 != null)
                     list5.addAll(choiceGroups.get(exeKey1));
-                    if(exeKey2 != null)
+                if(exeKey2 != null)
                         list6.addAll(choiceGroups.get(exeKey2));
-                }
                 isConflictFree =  isConflictFree(list5, list6);
                 break;
         }
