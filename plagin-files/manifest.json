@@ -9,12 +9,18 @@
   ],
   "content_scripts": [
     {
-      "matches": ["https://rishum.mta.ac.il/*"],
+      "matches": [ "https://rishum.mta.ac.il/*" ],
       "js": [ "contentCourses.js" ]
     }
   ],
   "action": {
     "default_popup": "hello.html",
     "default_icon": "on.png"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["dom-monitor.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
