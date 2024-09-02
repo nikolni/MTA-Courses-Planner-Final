@@ -7,6 +7,7 @@ import com.meidanet.database.computer.science.course.choice.ChoiceCoursesService
 import com.meidanet.database.computer.science.course.condition.CoursesConditionsService;
 import com.meidanet.database.computer.science.course.required.RequiredCoursesService;
 import com.meidanet.database.student.courses.CourseService;
+import com.meidanet.database.student.data.StudentService;
 import com.meidanet.system.controller.form.parser.FormParser;
 import com.meidanet.system.preference.form.PreferencesForm;
 import com.meidanet.system.scheduler.Scheduler;
@@ -14,6 +15,9 @@ import com.meidanet.system.scheduler.answer.FinalSystem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 @RestController
@@ -24,16 +28,17 @@ public class PreferencesFormController {
     private final RequiredCoursesService requiredCoursesService;
     private final ChoiceCoursesService choiceCoursesService;
     private final CoursesConditionsService csCoursesConditionsService;
+    private final StudentService studentService;
 
     @Autowired
     public PreferencesFormController(CourseService courseService, RequiredCoursesService requiredCoursesService,
-                           ChoiceCoursesService choiceCoursesService, CoursesConditionsService csCoursesConditionsService)
+                                     ChoiceCoursesService choiceCoursesService, CoursesConditionsService csCoursesConditionsService, StudentService studentService)
     {
         this.courseService = courseService;
         this.requiredCoursesService = requiredCoursesService;
         this.choiceCoursesService = choiceCoursesService;
         this.csCoursesConditionsService = csCoursesConditionsService;
-
+        this.studentService = studentService;
     }
 
     //test
