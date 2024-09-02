@@ -15,13 +15,9 @@ import com.meidanet.database.student.data.StudentRepository;
 import com.meidanet.database.student.data.StudentService;
 import com.meidanet.htmlscraper.html.parser.CoursesConditionsParser;
 import com.meidanet.htmlscraper.html.parser.StuCoursesHtmlParser;
-import com.meidanet.htmlscraper.html.parser.StuDataHtmlParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,59 +56,44 @@ public class HtmlController {
         this.csCoursesConditionsService = csCoursesConditionsService;
 
 }
-
-    @PostMapping("/upload-stu-data")
-    public ResponseEntity<List<String>> receiveStuDataHtml(@RequestBody HtmlSource htmlSource) {
-        if (htmlSource == null || htmlSource.getHtmlSource() == null || htmlSource.getHtmlSource().isEmpty()) {
-            return ResponseEntity.badRequest().body(null);
-        }
-
-        List<String> studentData = StuDataHtmlParser.extractStudentData(htmlSource.getHtmlSource());
-
-        if (studentData.size() < 3) {
-            return ResponseEntity.badRequest().body(null); // Or handle appropriately
-        }
-
-        Student student = studentService.addStudent(studentData);
-        if (student != null) {
-            studentRepository.save(student);
-        }
-
-        return ResponseEntity.ok(studentData);
+    //test
+    @GetMapping("/welcome")
+    public String welcome() {
+        return "your rest endpoint works";
     }
 
-    @PostMapping("/upload-courses")
-    public ResponseEntity<List<Course>> receiveHtml(@RequestBody HtmlSource htmlSource) {
+    @CrossOrigin(origins = {"https://rishum.mta.ac.il"}, allowCredentials = "true")
+    @PostMapping("/is-student-registered")
+    public ResponseEntity<Boolean> isStudentExist(@RequestBody HtmlSource htmlSource) {
         if (htmlSource == null || htmlSource.getHtmlSource() == null || htmlSource.getHtmlSource().isEmpty()) {
             return ResponseEntity.badRequest().body(null);
         }
+        String studentID = StuCoursesHtmlParser.extractID(htmlSource.getHtmlSource());
+        String studentName = StuCoursesHtmlParser.extractName(htmlSource.getHtmlSource());
 
-        List<String> userID = StuCoursesHtmlParser.extractUserAndID(htmlSource.getHtmlSource());
-        if (userID.size() < 2) {
-            return ResponseEntity.badRequest().body(null); // Or handle appropriately
-        }
+        boolean isStudentRegistered = false;
+        if(studentID != null && studentName != null) {
+            isStudentRegistered = studentService.isStudentRegistered(studentID);
 
-        Student student = studentService.addStudent(userID);
-        if (student != null) {
-            studentRepository.save(student);
-        }
+            if(!isStudentRegistered){
+                List<String> userID = new ArrayList<>();
+                userID.add(studentID);
+                userID.add(studentName);
 
-        List<String> courseNames = StuCoursesHtmlParser.extractCourseNames(htmlSource.getHtmlSource());
-        String[] courseDetails;
+                Student student = studentService.addStudent(userID);
+                if (student != null)
+                    studentRepository.save(student);
 
-        List<Course> savedCourses = new ArrayList<>();
-        for (String courseName : courseNames) {
-            courseDetails = courseService.extractCourseIdAndName(courseName);
-            Course course = courseService.addCourse(courseDetails, userID.get(0));
-            if (course != null) {
-                savedCourses.add(courseRepository.save(course));
             }
         }
 
-        return ResponseEntity.ok(savedCourses);
+        System.out.println(isStudentRegistered);
+        return ResponseEntity.ok(isStudentRegistered);
     }
 
 
+
+    @CrossOrigin(origins = {"https://rishum.mta.ac.il"}, allowCredentials = "true")
     @PostMapping("/upload-courses-for-all-years")
     public ResponseEntity<List<Course>> receiveAllCoursesHtml(@RequestBody HtmlSource htmlSource) {
         if (htmlSource == null || htmlSource.getHtmlSource() == null || htmlSource.getHtmlSource().isEmpty()) {
@@ -124,10 +105,10 @@ public class HtmlController {
             return ResponseEntity.badRequest().body(null); // Or handle appropriately
         }
 
-        Student student = studentService.addStudent(userID);
-        if (student != null) {
-            studentRepository.save(student);
-        }
+//        Student student = studentService.addStudent(userID);
+//        if (student != null)
+//            studentRepository.save(student);
+//
 
         List<String> courseNames = StuCoursesHtmlParser.extractCourseNames(htmlSource.getHtmlSource());
         String[] courseDetails;
@@ -194,6 +175,7 @@ public class HtmlController {
 //        return ResponseEntity.ok("Successfully loaded CS courses");
 //    }
 
+    @CrossOrigin(origins = {"https://rishum.mta.ac.il"}, allowCredentials = "true")
     @PostMapping("/upload-course-conditions")
     public ResponseEntity<String> receiveHtmlForCSCoursesConditions(@RequestBody HtmlSource htmlSource) {
         if (htmlSource == null || htmlSource.getHtmlSource() == null || htmlSource.getHtmlSource().isEmpty()) {
