@@ -1,0 +1,163 @@
+{
+  "reqCoursesBlist": [
+    {
+      "#": "1",
+      "course_id_name": "111124 - C תכנות מתקדם בשפת",
+      "course_type": "required",
+      "course_year": "שנה א",
+      "day": "א",
+      "end_time": "11:30",
+      "group_number": "11112413",
+      "lecturer_name": "פרופ' דרור גדעון",
+      "lesson_or_exercise": "שיעור",
+      "semester": "ב",
+      "start_time": "08:30"
+    },
+    {
+      "#": "2",
+      "course_id_name": "111124 - C תכנות מתקדם בשפת",
+      "course_type": "required",
+      "course_year": "שנה א",
+      "day": "א",
+      "end_time": "12:45",
+      "group_number": "11112414",
+      "lecturer_name": "גב' מרינוב עדי",
+      "lesson_or_exercise": "תרגיל",
+      "semester": "ב",
+      "start_time": "11:15"
+    },
+    {
+      "#": "35",
+      "course_id_name": "אלגברה לינארית 1 - 111117",
+      "course_type": "required",
+      "course_year": "שנה א",
+      "day": "ג",
+      "end_time": "12:45",
+      "group_number": "11111703",
+      "lecturer_name": "פרופ' לב אריה",
+      "lesson_or_exercise": "שיעור",
+      "semester": "ב",
+      "start_time": "10:15"
+    },
+    {
+      "#": "47",
+      "course_id_name": "אלגברה לינארית 1 - 111117",
+      "course_type": "required",
+      "course_year": "שנה א",
+      "day": "ה",
+      "end_time": "11:45",
+      "group_number": "11111703",
+      "lecturer_name": "פרופ' לב אריה",
+      "lesson_or_exercise": "שיעור",
+      "semester": "ב",
+      "start_time": "10:15"
+    },
+    {
+      "#": "40",
+      "course_id_name": "אלגברה לינארית 1 - 111117",
+      "course_type": "required",
+      "course_year": "שנה א",
+      "day": "ד",
+      "end_time": "13:45",
+      "group_number": "11111705",
+      "lecturer_name": "מר בצלאל יוסף",
+      "lesson_or_exercise": "תרגיל",
+      "semester": "ב",
+      "start_time": "12:15"
+    }
+
+  ],
+  "choiceCoursesBlist": [
+    {
+      "#": "47",
+      "course_id_name": "למידה חישובית עם פייתון - 142194",
+      "course_type": "choice - Computer Science",
+      "day": "ב",
+      "end_time": "19:00",
+      "group_number": "14219403",
+      "lecturer_name": "ד\"ר רבינוביץ אלה",
+      "lesson_or_exercise": "שיעור",
+      "semester": "ב",
+      "start_time": "16:30"
+    },
+    {
+      "#": "98",
+      "course_id_name": "פיתוח תוכנה מבוסס ג'אווה - 142203",
+      "course_type": "choice - Computer Science",
+      "day": "א",
+      "end_time": "19:45",
+      "group_number": "14220302",
+      "lecturer_name": "מר כהן אביעד",
+      "lesson_or_exercise": "שיעור",
+      "semester": "ב",
+      "start_time": "16:15"
+    }
+  ],
+  "reqCoursesAlist": [
+    {
+      "#": "104",
+      "course_id_name": "חשבון דיפרנציאלי ואינטגרלי 1 - 111113",
+      "course_type": "required",
+      "course_year": "שנה א",
+      "day": "ד",
+      "end_time": "11:45",
+      "group_number": "11111301",
+      "lecturer_name": "ד\"ר זיגדון רומינה",
+      "lesson_or_exercise": "שיעור",
+      "semester": "א",
+      "start_time": "10:15"
+    },
+    {
+      "#": "107",
+      "course_id_name": "חשבון דיפרנציאלי ואינטגרלי 1 - 111113",
+      "course_type": "required",
+      "course_year": "שנה א",
+      "day": "ה",
+      "end_time": "14:45",
+      "group_number": "11111301",
+      "lecturer_name": "ד\"ר זיגדון רומינה",
+      "lesson_or_exercise": "שיעור",
+      "semester": "א",
+      "start_time": "12:15"
+    },
+    {
+      "#": "99",
+      "course_id_name": "חשבון דיפרנציאלי ואינטגרלי 1 - 111113",
+      "course_type": "required",
+      "course_year": "שנה א",
+      "day": "ג",
+      "end_time": "12:45",
+      "group_number": "11111302",
+      "lecturer_name": "מר בצלאל יוסף",
+      "lesson_or_exercise": "תרגיל",
+      "semester": "א",
+      "start_time": "11:15"
+    }
+  ],
+  "choiceCoursesAlist": [
+    {
+      "#": "1",
+      "course_id_name": "142140 - Design Patterns תכנות יישומי בעזרת",
+      "course_type": "choice - Computer Science",
+      "day": "ג",
+      "end_time": "15:45",
+      "group_number": "14214002",
+      "lecturer_name": "מר רונן גיא",
+      "lesson_or_exercise": "שיעור",
+      "semester": "א",
+      "start_time": "13:15"
+    },
+    {
+      "#": "42",
+      "course_id_name": "גנים וסביבה בתורשת האדם - 194010",
+      "course_type": "choice - Sciences",
+      "day": "א",
+      "end_time": "14:45",
+      "group_number": "19401001",
+      "lecturer_name": "ד\"ר שוויקי דורית",
+      "lesson_or_exercise": "שיעור",
+      "semester": "א",
+      "start_time": "12:15"
+    }
+  ]
+}
