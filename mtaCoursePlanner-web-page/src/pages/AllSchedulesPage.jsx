@@ -2,8 +2,10 @@ import { useState, useRef } from 'react';
 import CoursesScheduler from "../components/CoursesScheduler.jsx";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import spinner from "../components/Spinner.jsx";
+import Spinner from "../components/Spinner.jsx";
 // eslint-disable-next-line react/prop-types
-const AllSchedulesPage = ({responseData}) => {
+const AllSchedulesPage = ({responseData, loading}) => {
 
 
     const [selectedSemester, setSelectedSemester] = useState('');
@@ -77,7 +79,7 @@ const AllSchedulesPage = ({responseData}) => {
                                 </button>
                             )}
                         </div>
-                        {coursesProps && (
+                        {coursesProps && !loading && (
                             <>
                                 <CoursesScheduler
                                     reqCoursesArrayName={coursesProps.reqCoursesArrayName}
@@ -110,8 +112,9 @@ const AllSchedulesPage = ({responseData}) => {
                         )}
                     </div>
             ) : (
-                <p className="my-4 text-xl text-center text-black">No Schedules To Show</p>
+                <p className="my-4 text-xl text-center text-black">אין מערכות זמינות להצגה</p>
             )}
+            <Spinner loading={loading}/>
         </div>
     );
 

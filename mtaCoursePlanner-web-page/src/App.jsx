@@ -15,8 +15,9 @@ import AllSchedulesPage from "./pages/AllSchedulesPage.jsx";
 const App = () => {
 
     const [resData, setResData] = useState(null);
+    const [loading,setLoading] = useState(false);
     const addPref = async (newPref) => {
-        //console.log('addPref function called');
+        setLoading(true);
         console.log('Sending preference:', newPref);
         try {
             const response = await fetch('https://mta-courses-planner.df.r.appspot.com/preferences-form/upload-preferences-form', {
@@ -38,6 +39,9 @@ const App = () => {
         } catch (error) {
             console.error('Failed to fetch:', error);
         }
+        finally {
+            setLoading(false);
+        }
     }
 
 
@@ -45,8 +49,8 @@ const App = () => {
         createRoutesFromElements(
             <Route path='/' element={<MainLayout />}>
                 <Route index element={<HomePage />} />
-                <Route path='/add-pref' element={<AddCoursesPref addPrefSubmit={addPref} />} />
-                <Route path='/show-schedules' element={<AllSchedulesPage responseData={resData}/>} />
+                <Route path='/add-pref' element={<AddCoursesPref addPrefSubmit={addPref}/>}/>
+                <Route path='/show-schedules' element={<AllSchedulesPage responseData={resData} loading={loading}/>}/>
             </Route>
         )
     )
