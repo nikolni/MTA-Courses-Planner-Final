@@ -1,0 +1,63 @@
+/* popup.css */
+
+html, body {
+    font-family: Arial, sans-serif;
+    min-width: 286px;
+    min-height: 33px;
+    font-size: 14px;
+    margin: 0;
+    padding: 0;
+}
+
+p {
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    unicode-bidi: isolate;
+}
+
+b {
+    font-weight: bold;
+}
+
+
+#content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 10px;
+}
+
+#logo {
+    width: 50px; /* Adjust as needed */
+    height: auto;
+    margin-bottom: 10px;
+}
+
+h1 {
+    margin: 10px 0;
+    font-size: 18px;
+    text-align: center;
+}
+
+button {
+    background-color: #0066b2;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    margin: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #00518E;
+}

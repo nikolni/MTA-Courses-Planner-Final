@@ -1,20 +1,21 @@
 {
-  "name": "MTA Courses Planner!",
-  "description": "Courses details Extension",
+  "name": "MTA Courses Planner",
+  "description": "Academic Course Scheduling that integrates with the \"midanet\" website.",
   "version": "1.0",
   "manifest_version": 3,
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "tabs"
   ],
   "content_scripts": [
     {
-      "matches": [ "https://rishum.mta.ac.il/*" ],
-      "js": [ "contentCourses.js" ]
+      "matches": ["https://rishum.mta.ac.il/*"],
+      "js": ["contentCourses.js"]
     }
   ],
   "action": {
-    "default_popup": "hello.html",
+    "default_popup": "popup.html",
     "default_icon": "on.png"
   },
   "web_accessible_resources": [
