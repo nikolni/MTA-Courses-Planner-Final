@@ -23,7 +23,7 @@ const CoursesScheduler = ({reqCoursesArrayName, choiceCoursesArrayName, response
 
     useEffect(() => {
         if(responseData){
-            console.log("data res from server:", responseData);
+            //console.log("data res from server:", responseData);
             const dataArray1 = responseData[reqCoursesArrayName] || [];
             const dataArray2 = responseData[choiceCoursesArrayName] || [];
 

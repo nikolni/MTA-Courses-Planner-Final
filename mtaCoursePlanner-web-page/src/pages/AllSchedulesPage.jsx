@@ -63,6 +63,73 @@ const AllSchedulesPage = ({responseData, loading}) => {
     return (
         <div>
             {responseData ? (
+                // Check if responseData contains a message (indicating an error)
+                responseData.message ? (
+                    <p className="my-4 text-xl text-center text-black">{responseData.message}</p>
+                ) : (
+                    <div ref={printRef} id="content-to-print">
+                        {!loading && (
+                            <>
+                                <div className="flex items-center">
+                                    <select className="border rounded py-2 px-3 mb-2 mr-4" value={selectedSemester} onChange={handleChange}>
+                                        <option value="">Select a semester</option>
+                                        <option value="A">Semester A</option>
+                                        <option value="B">Semester B</option>
+                                    </select>
+                                    {coursesProps && (
+                                        <button
+                                            className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline"
+                                            onClick={generatePDF}
+                                        >
+                                            Download as PDF
+                                        </button>
+                                    )}
+                                </div>
+                                {coursesProps && (
+                                    <>
+                                        <CoursesScheduler
+                                            reqCoursesArrayName={coursesProps.reqCoursesArrayName}
+                                            choiceCoursesArrayName={coursesProps.choiceCoursesArrayName}
+                                            responseData={responseData}
+                                        />
+                                        <div className="mt-1">
+                                            <h3 className="text-lg font-semibold ml-3">Changes</h3>
+                                            {coursesProps.changes.length > 0 ? (
+                                                <ul className="list-disc list-inside ml-3">
+                                                    {coursesProps.changes.map((change, index) => (
+                                                        <li key={index}>{change}</li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <p className='ml-3'>No changes available for this semester.</p>
+                                            )}
+                                            <h3 className="text-lg font-semibold ml-3 mt-1">Errors</h3>
+                                            {coursesProps.errors.length > 0 ? (
+                                                <ul className="list-disc list-inside ml-3">
+                                                    {coursesProps.errors.map((error, index) => (
+                                                        <li key={index}>{error}</li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <p className='ml-3'>No errors available for this semester.</p>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </div>
+                )
+            ) : (
+                <p className="my-4 text-xl text-center text-black">אין מערכות זמינות להצגה</p>
+            )}
+            <Spinner loading={loading} />
+        </div>
+    );
+
+    /*return (
+        <div>
+            {responseData ? (
                     <div ref={printRef} id="content-to-print">
                         <div className="flex items-center">
                             <select className="border rounded py-2 px-3 mb-2 mr-4" value={selectedSemester} onChange={handleChange}>
@@ -116,7 +183,7 @@ const AllSchedulesPage = ({responseData, loading}) => {
             )}
             <Spinner loading={loading}/>
         </div>
-    );
+    );*/
 
 };
 export default AllSchedulesPage;
